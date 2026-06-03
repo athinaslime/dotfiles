@@ -4,6 +4,8 @@ hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd("kitty"))
 hl.bind(mainMod .. " + C", hl.dsp.window.close())
 hl.bind(mainMod .. " + M", hl.dsp.exit())
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("zen-browser"))
+hl.bind(mainMod .. " + R", hl.dsp.exec_cmd("vicinae toggle"))
+hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("vicinae vicinae://launch/clipboard/history?toggle=true"))
 
 hl.bind("CTRL + mouse:275", hl.dsp.exec_cmd("playerctl next"))
 hl.bind("CTRL + mouse:276", hl.dsp.exec_cmd("playerctl previous"))
