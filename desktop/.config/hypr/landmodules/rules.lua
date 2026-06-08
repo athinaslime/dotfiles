@@ -21,6 +21,15 @@ hl.window_rule({
   no_initial_focus = true
 })
 
+hl.window_rule({
+  name = "xwayland-blur-fix",
+  match = {
+    xwayland = true
+  },
+
+  no_blur = true
+})
+
 for i = 1, 5 do
   hl.workspace_rule({
     workspace = i,
