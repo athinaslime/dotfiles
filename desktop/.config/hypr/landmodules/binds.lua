@@ -9,6 +9,7 @@ hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("vicinae vicinae://launch/clipboard/h
 
 hl.bind("CTRL + mouse:275", hl.dsp.exec_cmd("playerctl next"))
 hl.bind("CTRL + mouse:276", hl.dsp.exec_cmd("playerctl previous"))
+hl.bind("CTRL + mouse:274", hl.dsp.exec_cmd("playerctl play-pause"))
 
 local screenshotScript = os.getenv("HOME") .. "/.scripts/screenshot.sh"
 
