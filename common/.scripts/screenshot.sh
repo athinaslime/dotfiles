@@ -1,120 +1,62 @@
 #!/bin/bash
 
 for cmd in grim slurp jq v4l2-ctl wl-copy magick hyprpicker; do
-  if ! command -v "$cmd" &> /dev/null; then
-    echo "error: '$cmd' is not installed." >&2
-    exit 1
-  fi
+  command -v "$cmd" &>/dev/null || { echo "error: '$cmd' is not installed." >&2; exit 1; }
 done
-
-trap '[[ -n "$FREEZE_PID" ]] && kill "$FREEZE_PID" 2>/dev/null' EXIT
 
 USAGE_MESSAGE="usage: $0 [--region | --monitor | --full | --window | --device | --devmon]"
 
+copy() { wl-copy -t image/png; echo "screenshot of $1 copied to clipboard (image/png)."; }
+
+pick_device() {
+  local devices choice
+  devices=$(v4l2-ctl --list-devices | awk '/\(/ {name=$0; getline; print name " (" $1 ")"}' | sed 's/\t//g')
+  [ -n "$devices" ] || { echo "no devices found." >&2; return 1; }
+  choice=$(echo "$devices" | vicinae dmenu --placeholder "Select device...")
+  [ -n "$choice" ] || return 1
+  echo "$choice" | grep -o '/dev/video[0-9]\+'
+}
+
+capture_device() {
+  v4l2-ctl --device "$1" \
+    --set-fmt-video=width=1920,height=1080,pixelformat=MJPG \
+    --stream-mmap --stream-to=- --stream-count=1
+}
+
 case "$1" in
   --region)
-    hyprpicker -rzq &
-    FREEZE_PID=$!
+    hyprpicker -rzq & FREEZE_PID=$!
+    trap 'kill "$FREEZE_PID" 2>/dev/null' EXIT
     sleep 0.01
-
-    if ! GEOMETRY=$(slurp); then
-      exit 1
-    fi
-
-    if [ -n "$FREEZE_PID" ]; then
-      kill "$FREEZE_PID" 2>/dev/null
-      unset FREEZE_PID
-    fi
-
-    grim -g "$GEOMETRY" - | wl-copy
-
-    echo "screenshot of selected area copied to clipboard (image/png)."
+    GEOMETRY=$(slurp) || exit 1
+    grim -g "$GEOMETRY" - | copy "selected area"
     ;;
   --monitor)
     MONITOR_NAME=$(hyprctl activeworkspace -j | jq -r '.monitor')
-
-    grim -o "$MONITOR_NAME" - | wl-copy
-
-    echo "screenshot of monitor ($MONITOR_NAME) copied to clipboard (image/png)."
+    grim -o "$MONITOR_NAME" - | copy "monitor ($MONITOR_NAME)"
     ;;
   --full)
-    grim - | wl-copy
-
-    echo "screenshot of all monitors copied to clipboard (image/png)."
+    grim - | copy "all monitors"
     ;;
   --window)
     WINDOW_INFO=$(hyprctl activewindow -j)
-
-    if [ -z "$WINDOW_INFO" ]; then
-      echo "could not get active window information using hyprctl." >&2
-      exit 1
-    fi
-
-    X=$(echo "$WINDOW_INFO" | jq -r '.at[0]')
-    Y=$(echo "$WINDOW_INFO" | jq -r '.at[1]')
-    W=$(echo "$WINDOW_INFO" | jq -r '.size[0]')
-    H=$(echo "$WINDOW_INFO" | jq -r '.size[1]')
-
-    GEOMETRY="${X},${Y} ${W}x${H}"
-
-    grim -g "$GEOMETRY" - | wl-copy
-
+    [ -n "$WINDOW_INFO" ] || { echo "could not get active window information using hyprctl." >&2; exit 1; }
+    GEOMETRY=$(echo "$WINDOW_INFO" | jq -r '"\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"')
     WINDOW_CLASS=$(echo "$WINDOW_INFO" | jq -r '.class')
-    echo "screenshot of active window ($WINDOW_CLASS) copied to clipboard (image/png)."
+    grim -g "$GEOMETRY" - | copy "active window ($WINDOW_CLASS)"
     ;;
   --device)
-    DEVICES=$(v4l2-ctl --list-devices | awk '/\(/ {name=$0; getline; print name " (" $1 ")"}' | sed 's/\t//g')
-
-    if [ -z "$DEVICES" ]; then
-      echo "no devices found." >&2
-      exit 1
-    fi
-
-    CHOICE=$(echo "$DEVICES" | vicinae dmenu --placeholder "Select device...")
-
-    if [ -z "$CHOICE" ]; then
-      exit 1
-    fi
-
-    TARGET_DEVICE=$(echo "$CHOICE" | grep -o '/dev/video[0-9]\+')
-
-    v4l2-ctl --device "$TARGET_DEVICE" \
-        --set-fmt-video=width=1920,height=1080,pixelformat=MJPG \
-        --stream-mmap --stream-to=- --stream-count=1 \
-        | wl-copy -t image/png
-
-    echo "screenshot of device ($TARGET_DEVICE) copied to clipboard (image/png)."
+    TARGET_DEVICE=$(pick_device) || exit 1
+    capture_device "$TARGET_DEVICE" | copy "device ($TARGET_DEVICE)"
     ;;
   --devmon)
-    DEVICES=$(v4l2-ctl --list-devices | awk '/\(/ {name=$0; getline; print name " (" $1 ")"}' | sed 's/\t//g')
-
-    if [ -z "$DEVICES" ]; then
-      echo "no devices found." >&2
-      exit 1
-    fi
-
-    DEVICE_CHOICE=$(echo "$DEVICES" | vicinae dmenu --placeholder "Select device...")
-    if [ -z "$DEVICE_CHOICE" ]; then
-      exit 1
-    fi
-
-    TARGET_DEVICE=$(echo "$DEVICE_CHOICE" | grep -o '/dev/video[0-9]\+')
-
-    MONITORS=$(hyprctl monitors -j | jq -r '.[].name')
-    MONITOR_CHOICE=$(echo "$MONITORS" | vicinae dmenu --placeholder "Select monitor...")
-    if [ -z "$MONITOR_CHOICE" ]; then
-      exit 1
-    fi
-
-    grim -o "$MONITOR_CHOICE" /tmp/mon_cap.png
-
-    v4l2-ctl --device "$TARGET_DEVICE" \
-      --set-fmt-video=width=1920,height=1080,pixelformat=MJPG \
-      --stream-mmap --stream-to=- --stream-count=1 | \
-      magick /tmp/mon_cap.png - +append png:- | \
-      wl-copy -t image/png
-
-    rm /tmp/mon_cap.png
+    TARGET_DEVICE=$(pick_device) || exit 1
+    MONITOR_CHOICE=$(hyprctl monitors -j | jq -r '.[].name' | vicinae dmenu --placeholder "Select monitor...")
+    [ -n "$MONITOR_CHOICE" ] || exit 1
+    MON_CAP=$(mktemp --suffix=.png)
+    trap 'rm -f "$MON_CAP"' EXIT
+    grim -o "$MONITOR_CHOICE" "$MON_CAP"
+    capture_device "$TARGET_DEVICE" | magick "$MON_CAP" - +append png:- | copy "device + monitor ($MONITOR_CHOICE)"
     ;;
   "")
     echo "missing required argument." >&2
