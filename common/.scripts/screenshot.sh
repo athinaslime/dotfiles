@@ -1,10 +1,35 @@
 #!/bin/bash
+USAGE_MESSAGE="usage: $0 [--region | --monitor | --full | --window | --device | --devmon | --install]"
 
-for cmd in grim slurp jq v4l2-ctl wl-copy magick hyprpicker; do
-  command -v "$cmd" &>/dev/null || { echo "error: '$cmd' is not installed." >&2; exit 1; }
-done
+install_packages() {
+  local -A PKG
+  PKG[grim]=grim
+  PKG[slurp]=slurp
+  PKG[jq]=jq
+  PKG[v4l2-ctl]=v4l-utils
+  PKG[wl-copy]=wl-clipboard
+  PKG[magick]=imagemagick
+  PKG[hyprpicker]=hyprpicker
 
-USAGE_MESSAGE="usage: $0 [--region | --monitor | --full | --window | --device | --devmon]"
+  local missing=()
+  for cmd in "${!PKG[@]}"; do
+    command -v "$cmd" &>/dev/null || missing+=("${PKG[$cmd]}")
+  done
+
+  if [ ${#missing[@]} -eq 0 ]; then
+    echo "all packages are already installed."
+    return 0
+  fi
+
+  echo "packages to install: ${missing[*]}"
+  sudo pacman -S --needed -- "${missing[@]}"
+}
+
+check_deps() {
+  for cmd in grim slurp jq v4l2-ctl wl-copy magick hyprpicker; do
+    command -v "$cmd" &>/dev/null || { echo "error: '$cmd' is not installed." >&2; exit 1; }
+  done
+}
 
 copy() { wl-copy -t image/png; echo "screenshot of $1 copied to clipboard (image/png)."; }
 
@@ -24,6 +49,9 @@ capture_device() {
 }
 
 case "$1" in
+  --install)
+    install_packages
+    ;;
   --region)
     hyprpicker -rzq & FREEZE_PID=$!
     trap 'kill "$FREEZE_PID" 2>/dev/null' EXIT
