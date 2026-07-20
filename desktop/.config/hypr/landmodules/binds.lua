@@ -27,6 +27,11 @@ for _, bind in ipairs(screenshotBinds) do
   hl.bind(mainMod .. "+SHIFT+" .. key, hl.dsp.exec_cmd(screenshotScript .. " " .. flag))
 end
 
+local ccAudioControlScript = os.getenv("HOME") .. "/.scripts/cc-audio-control.sh"
+
+hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd(ccAudioControlScript .. " --up"))
+hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd(ccAudioControlScript .. " --down"))
+
 for i = 1, 10 do
   local key = i % 10
   hl.bind(mainMod .. " + " .. key, hl.dsp.focus({workspace = i}))
