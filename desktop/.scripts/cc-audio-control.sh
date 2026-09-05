@@ -6,14 +6,15 @@ CACHE_FILE="$CACHE_DIRECTORY/cc-audio-loopback-module-id"
 VOLUME_STEP="5%"
 
 sink_input_for_module() {
-  pactl -f json list sink-inputs \
-    | jq -r --arg mod "$1" '.[] | select(.owner_module==$mod) | .index'
+  pactl list sink-inputs | awk -v mod="$1" '
+    /^Sink Input #/ { idx = $0; sub(/^Sink Input #/, "", idx) }
+    $0 ~ ("Owner Module: " mod "$") { print idx }
+  '
 }
 
 current_volume_percent() {
-  pactl -f json list sink-inputs \
-    | jq -r --arg si "$1" '.[] | select((.index|tostring)==$si) | .volume["front-left"].value_percent' \
-    | tr -d '%'
+  pactl list sink-inputs | sed -n "/Sink Input #$1\$/,/Sink Input #/p" \
+    | grep -m1 "Volume:" | grep -oP '\d+(?=%)' | head -1
 }
 
 case "$1" in
