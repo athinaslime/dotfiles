@@ -18,6 +18,12 @@ hl.bind(mainMod .. " + SHIFT + right", hl.dsp.window.move({ direction = "right" 
 hl.bind(mainMod .. " + SHIFT + up",    hl.dsp.window.move({ direction = "up" }))
 hl.bind(mainMod .. " + SHIFT + down",  hl.dsp.window.move({ direction = "down" }))
 
+for i = 1, 10 do
+  local key = i % 10
+  hl.bind(mainMod .. " + " .. key, hl.dsp.focus({workspace = i}))
+  hl.bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({workspace = i}))
+end
+
 hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true })
 
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())
