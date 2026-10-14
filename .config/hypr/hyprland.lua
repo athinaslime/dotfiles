@@ -1,3 +1,4 @@
+require("landmodules.animations")
 require("landmodules.autostart")
 require("landmodules.binds")
 require("landmodules.env-variables")
