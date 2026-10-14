@@ -6,6 +6,7 @@ hl.bind(mainMod .. " + M", hl.dsp.exit())
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("zen-browser"))
 
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd("vicinae toggle"))
+hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("vicinae vicinae://launch/clipboard/history?toggle=true"))
 
 hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))
 hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
