@@ -3,6 +3,7 @@ local mainMod = "SUPER"
 hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd("kitty"))
 hl.bind(mainMod .. " + C", hl.dsp.window.close())
 hl.bind(mainMod .. " + M", hl.dsp.exit())
+hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("zen-browser"))
 
 hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))
 hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
