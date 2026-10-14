@@ -1,4 +1,5 @@
 require("landmodules.autostart")
 require("landmodules.binds")
+require("landmodules.env-variables")
 require("landmodules.input")
 require("landmodules.monitors")
