@@ -8,6 +8,11 @@ case "$1" in
     exit 1
   ;;
 
+  --monitor)
+    grim -o "$2" - | wl-copy
+    exit 0
+  ;;
+
   *)
     echo "$USAGE_MESSAGE"
     exit 1
