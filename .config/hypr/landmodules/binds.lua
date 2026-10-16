@@ -31,3 +31,6 @@ hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())
 local ccAudioControlScript = os.getenv("HOME") .. "/.scripts/cc-audio-control.sh"
 hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd(ccAudioControlScript .. " --up"))
 hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd(ccAudioControlScript .. " --down"))
+
+local screenshotScript = os.getenv("HOME") .. "/.scripts/screenshot.sh"
+hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd(screenshotScript .. " --region"))
