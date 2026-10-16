@@ -1,3 +1,4 @@
 hl.on("hyprland.start", function ()
   hl.exec_cmd("vicinae server")
+  hl.exec_cmd("sleep 10 && ./.scripts/cc-audio-control.sh --enable")
 end)

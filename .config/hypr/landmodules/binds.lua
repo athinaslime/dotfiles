@@ -27,3 +27,7 @@ end
 hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true })
 
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())
+
+local ccAudioControlScript = os.getenv("HOME") .. "/.scripts/cc-audio-control.sh"
+hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd(ccAudioControlScript .. " --up"))
+hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd(ccAudioControlScript .. " --down"))
