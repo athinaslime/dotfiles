@@ -2,6 +2,22 @@
 
 USAGE_MESSAGE="usage: $0 [--region | --monitor | --device | --devmon]"
 
+device_selector() {
+  DEVICES=$(v4l2-ctl --list-devices | awk '/\(/ {name=$0; getline; print name " (" $1 ")"}' | sed 's/\t//g')
+
+  if [ -z "$DEVICES" ]; then
+    echo "no devices found." >&2
+    exit 1
+  fi
+
+  DEVICE_CHOICE=$(echo "$DEVICES" | vicinae dmenu --placeholder "Select device...")
+  if [ -z "$DEVICE_CHOICE" ]; then
+    exit 1
+  fi
+
+  TARGET_DEVICE=$(echo "$DEVICE_CHOICE" | grep -o '/dev/video[0-9]\+')
+}
+
 case "$1" in
   --region)
     grim -g "$(slurp)" - | wl-copy
@@ -14,20 +30,7 @@ case "$1" in
   ;;
 
   --device)
-    DEVICES=$(v4l2-ctl --list-devices | awk '/\(/ {name=$0; getline; print name " (" $1 ")"}' | sed 's/\t//g')
-
-    if [ -z "$DEVICES" ]; then
-      echo "no devices found." >&2
-      exit 1
-    fi
-
-    CHOICE=$(echo "$DEVICES" | vicinae dmenu --placeholder "Select device...")
-
-    if [ -z "$CHOICE" ]; then
-      exit 1
-    fi
-
-    TARGET_DEVICE=$(echo "$CHOICE" | grep -o '/dev/video[0-9]\+')
+    device_selector
 
     v4l2-ctl --device "$TARGET_DEVICE" \
         --set-fmt-video=width=1920,height=1080,pixelformat=MJPG \
@@ -36,20 +39,7 @@ case "$1" in
   ;;
 
   --devmon)
-    DEVICES=$(v4l2-ctl --list-devices | awk '/\(/ {name=$0; getline; print name " (" $1 ")"}' | sed 's/\t//g')
-
-    if [ -z "$DEVICES" ]; then
-      echo "no devices found." >&2
-      exit 1
-    fi
-
-    DEVICE_CHOICE=$(echo "$DEVICES" | vicinae dmenu --placeholder "Select device...")
-    if [ -z "$DEVICE_CHOICE" ]; then
-      exit 1
-    fi
-
-    TARGET_DEVICE=$(echo "$DEVICE_CHOICE" | grep -o '/dev/video[0-9]\+')
-
+    device_selector
     grim -o "$2" /tmp/mon_cap.png
 
     v4l2-ctl --device "$TARGET_DEVICE" \
