@@ -1,6 +1,6 @@
 #!/bin/bash
 
-USAGE_MESSAGE="usage: $0 [--region | --monitor | --devmon]"
+USAGE_MESSAGE="usage: $0 [--region | --monitor | --device | --devmon]"
 
 case "$1" in
   --region)
@@ -11,6 +11,28 @@ case "$1" in
   --monitor)
     grim -o "$2" - | wl-copy
     exit 0
+  ;;
+
+  --device)
+    DEVICES=$(v4l2-ctl --list-devices | awk '/\(/ {name=$0; getline; print name " (" $1 ")"}' | sed 's/\t//g')
+
+    if [ -z "$DEVICES" ]; then
+      echo "no devices found." >&2
+      exit 1
+    fi
+
+    CHOICE=$(echo "$DEVICES" | vicinae dmenu --placeholder "Select device...")
+
+    if [ -z "$CHOICE" ]; then
+      exit 1
+    fi
+
+    TARGET_DEVICE=$(echo "$CHOICE" | grep -o '/dev/video[0-9]\+')
+
+    v4l2-ctl --device "$TARGET_DEVICE" \
+        --set-fmt-video=width=1920,height=1080,pixelformat=MJPG \
+        --stream-mmap --stream-to=- --stream-count=1 \
+        | wl-copy -t image/png
   ;;
 
   --devmon)

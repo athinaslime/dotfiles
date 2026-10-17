@@ -35,4 +35,5 @@ hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd(ccAudioControlScript .. " --down
 local screenshotScript = os.getenv("HOME") .. "/.scripts/screenshot.sh"
 hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd(screenshotScript .. " --region"))
 hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exec_cmd(screenshotScript .. " --monitor " .. hl.get_active_monitor().name))
-hl.bind(mainMod .. " + SHIFT + D", hl.dsp.exec_cmd(screenshotScript .. " --devmon HDMI-A-2"))
+hl.bind(mainMod .. " + SHIFT + D", hl.dsp.exec_cmd(screenshotScript .. " --device"))
+hl.bind(mainMod .. " + SHIFT + Z", hl.dsp.exec_cmd(screenshotScript .. " --devmon HDMI-A-2"))
