@@ -25,6 +25,8 @@ for i = 1, 10 do
 end
 
 hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true })
+hl.bind(mainMod .. " + mouse:276", hl.dsp.exec_cmd("playerctl next"), { mouse = true })
+hl.bind(mainMod .. " + mouse:275", hl.dsp.exec_cmd("playerctl previous"), { mouse = true })
 
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())
 
