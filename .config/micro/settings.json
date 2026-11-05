@@ -1,4 +1,4 @@
 {
-  "mkparents": true,
-  "tabsize": 4
+    "colorscheme": "simple",
+    "mkparents": true
 }
